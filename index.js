@@ -16,8 +16,8 @@ const DEFAULT_OPTIONS = {
   confirmButtonTitle: 'OK',
   confirmButtonColor: '#000000',
   barColor: '',
-  otherButtonTitle: 'Cancel',
-  otherButtonColor: '#dedede',
+  otherButtonTitle: '',
+  otherButtonColor: '',
   style: 'success',
   cancellable: true
 }

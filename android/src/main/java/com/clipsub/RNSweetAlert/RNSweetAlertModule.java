@@ -31,6 +31,10 @@ public class RNSweetAlertModule extends ReactContextBaseJavaModule {
     String contentText = options.hasKey("subTitle") ? options.getString("subTitle") : "";
     String barColor = options.hasKey("barColor") ? options.getString("barColor") : "";
     boolean cancellable = !options.hasKey("cancellable") || options.getBoolean("cancellable");
+    String confirmButtonColor = options.hasKey("confirmButtonColor") ? options.getString("confirmButtonColor") : "";
+    String confirmButtonTitle = options.hasKey("confirmButtonTitle") ? options.getString("confirmButtonTitle") : "OK";
+    String otherButtonTitle = options.hasKey("otherButtonTitle") ? options.getString("otherButtonTitle") : "";
+    String otherButtonColor = options.hasKey("otherButtonColor") ? options.getString("otherButtonColor") : "";
     switch (type) {
       case "normal":
         sweetAlertDialog.changeAlertType(SweetAlertDialog.NORMAL_TYPE);
@@ -65,11 +69,23 @@ public class RNSweetAlertModule extends ReactContextBaseJavaModule {
         sweetAlertDialog.dismissWithAnimation();
       }
     });
+    if (!otherButtonTitle.equals("")) {
+      sweetAlertDialog.showCancelButton(true);
+      sweetAlertDialog.setCancelText(otherButtonTitle);
+      if (!otherButtonColor.equals("")) {
+        sweetAlertDialog.setCancelButtonBackgroundColor(Color.parseColor(otherButtonColor));
+      }
+    }
     sweetAlertDialog.setTitleText(title);
     sweetAlertDialog.setContentText(contentText);
     sweetAlertDialog.setCancelable(cancellable);
+    sweetAlertDialog.setConfirmText(confirmButtonTitle);
     if (!barColor.equals("")) {
       setBarColor(barColor);
+    }
+    sweetAlertDialog.setCancelable(cancellable);
+    if (!confirmButtonColor.equals("")) {
+      sweetAlertDialog.setConfirmButtonBackgroundColor(Color.parseColor(confirmButtonColor));
     }
     sweetAlertDialog.show();
   }
