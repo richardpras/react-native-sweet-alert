@@ -31,7 +31,7 @@ public class RNSweetAlertModule extends ReactContextBaseJavaModule {
     String contentText = options.hasKey("subTitle") ? options.getString("subTitle") : "";
     String barColor = options.hasKey("barColor") ? options.getString("barColor") : "";
     boolean cancellable = !options.hasKey("cancellable") || options.getBoolean("cancellable");
-    String confirmButtonColor = options.hasKey("confirmButtonColor") ? options.getString("confirmButtonColor") : "";
+    String confirmButtonColor = options.hasKey("confirmButtonColor") ? options.getString("confirmButtonColor") : "#AEDEF4";
     String confirmButtonTitle = options.hasKey("confirmButtonTitle") ? options.getString("confirmButtonTitle") : "OK";
     String otherButtonTitle = options.hasKey("otherButtonTitle") ? options.getString("otherButtonTitle") : "";
     String otherButtonColor = options.hasKey("otherButtonColor") ? options.getString("otherButtonColor") : "";

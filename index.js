@@ -14,7 +14,7 @@ const DEFAULT_OPTIONS = {
   title: '',
   subTitle: '',
   confirmButtonTitle: 'OK',
-  confirmButtonColor: '#000000',
+  confirmButtonColor: '#AEDEF4',
   barColor: '',
   otherButtonTitle: '',
   otherButtonColor: '',
