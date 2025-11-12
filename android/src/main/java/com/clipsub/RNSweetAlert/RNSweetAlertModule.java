@@ -1,6 +1,14 @@
 package com.clipsub.RNSweetAlert;
 
+import android.annotation.SuppressLint;
 import android.graphics.Color;
+import android.app.Activity;
+import android.os.Handler;
+import android.os.Looper;
+import android.view.WindowManager;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.Promise;
@@ -12,82 +20,103 @@ import com.facebook.react.bridge.ReadableMap;
 import cn.pedant.SweetAlert.SweetAlertDialog;
 
 public class RNSweetAlertModule extends ReactContextBaseJavaModule {
+  @Nullable
   private SweetAlertDialog sweetAlertDialog;
+  private final ReactApplicationContext reactContext;
 
-  RNSweetAlertModule(final ReactApplicationContext reactContext) {
+  public RNSweetAlertModule(@NonNull final ReactApplicationContext reactContext) {
     super(reactContext);
+    this.reactContext = reactContext;
   }
 
+  @NonNull
   @Override
   public String getName() {
     return "RNSweetAlert";
   }
 
   @ReactMethod
-  public void showAlertWithOptions(ReadableMap options, final Callback acceptCallback) {
-    sweetAlertDialog = new SweetAlertDialog(getCurrentActivity());
-    String type = options.hasKey("style") ? options.getString("style") : "normal";
-    String title = options.hasKey("title") ? options.getString("title") : "";
-    String contentText = options.hasKey("subTitle") ? options.getString("subTitle") : "";
-    String barColor = options.hasKey("barColor") ? options.getString("barColor") : "";
-    boolean cancellable = !options.hasKey("cancellable") || options.getBoolean("cancellable");
-    String confirmButtonColor = options.hasKey("confirmButtonColor") ? options.getString("confirmButtonColor") : "#AEDEF4";
-    String confirmButtonTitle = options.hasKey("confirmButtonTitle") ? options.getString("confirmButtonTitle") : "OK";
-    String otherButtonTitle = options.hasKey("otherButtonTitle") ? options.getString("otherButtonTitle") : "";
-    String otherButtonColor = options.hasKey("otherButtonColor") ? options.getString("otherButtonColor") : "";
-    switch (type) {
-      case "normal":
-        sweetAlertDialog.changeAlertType(SweetAlertDialog.NORMAL_TYPE);
-        break;
-      case "error":
-        sweetAlertDialog.changeAlertType(SweetAlertDialog.ERROR_TYPE);
-        break;
-      case "success":
-        sweetAlertDialog.changeAlertType(SweetAlertDialog.SUCCESS_TYPE);
-        break;
-      case "warning":
-        sweetAlertDialog.changeAlertType(SweetAlertDialog.WARNING_TYPE);
-        break;
-      case "progress":
-        sweetAlertDialog.changeAlertType(SweetAlertDialog.PROGRESS_TYPE);
-        break;
-      default:
-        sweetAlertDialog.changeAlertType(SweetAlertDialog.NORMAL_TYPE);
-        break;
-    }
+  public void showAlertWithOptions(final ReadableMap options, final Callback acceptCallback) {
+    final Activity activity = getCurrentActivity();
+    if (activity == null || activity.isFinishing()) return;
 
-    sweetAlertDialog.setConfirmClickListener(new SweetAlertDialog.OnSweetClickListener() {
-      @Override
-      public void onClick(SweetAlertDialog sweetAlertDialog) {
+    new Handler(Looper.getMainLooper()).post(() -> {
+      sweetAlertDialog = new SweetAlertDialog(activity);
+
+      String type = options.hasKey("style") ? options.getString("style") : "normal";
+      String title = options.hasKey("title") ? options.getString("title") : "";
+      String contentText = options.hasKey("subTitle") ? options.getString("subTitle") : "";
+      String barColor = options.hasKey("barColor") ? options.getString("barColor") : "";
+      boolean cancellable = !options.hasKey("cancellable") || options.getBoolean("cancellable");
+      String confirmButtonColor = options.hasKey("confirmButtonColor") ? options.getString("confirmButtonColor") : "#AEDEF4";
+      String confirmButtonTitle = options.hasKey("confirmButtonTitle") ? options.getString("confirmButtonTitle") : "OK";
+      String otherButtonTitle = options.hasKey("otherButtonTitle") ? options.getString("otherButtonTitle") : "";
+      String otherButtonColor = options.hasKey("otherButtonColor") ? options.getString("otherButtonColor") : "";
+      String fontFamily = options.hasKey("fontFamily") ? options.getString("fontFamily") : ""; // 🆕 font opsional
+
+      switch (type) {
+        case "normal": sweetAlertDialog.changeAlertType(SweetAlertDialog.NORMAL_TYPE); break;
+        case "error": sweetAlertDialog.changeAlertType(SweetAlertDialog.ERROR_TYPE); break;
+        case "success": sweetAlertDialog.changeAlertType(SweetAlertDialog.SUCCESS_TYPE); break;
+        case "warning": sweetAlertDialog.changeAlertType(SweetAlertDialog.WARNING_TYPE); break;
+        case "progress": sweetAlertDialog.changeAlertType(SweetAlertDialog.PROGRESS_TYPE); break;
+        default: sweetAlertDialog.changeAlertType(SweetAlertDialog.NORMAL_TYPE); break;
+      }
+
+      sweetAlertDialog.setTitleText(title);
+      sweetAlertDialog.setContentText(contentText);
+      sweetAlertDialog.setCancelable(cancellable);
+      sweetAlertDialog.setConfirmText(confirmButtonTitle);
+
+      try {
+        if (!confirmButtonColor.isEmpty()) {
+          sweetAlertDialog.setConfirmButtonBackgroundColor(Color.parseColor(confirmButtonColor));
+        }
+        if (!barColor.isEmpty()) {
+          sweetAlertDialog.getProgressHelper().setBarColor(Color.parseColor(barColor));
+        }
+      } catch (Exception ignored) {}
+
+      if (!otherButtonTitle.isEmpty()) {
+        sweetAlertDialog.showCancelButton(true);
+        sweetAlertDialog.setCancelText(otherButtonTitle);
+        try {
+          if (!otherButtonColor.isEmpty()) {
+            sweetAlertDialog.setCancelButtonBackgroundColor(Color.parseColor(otherButtonColor));
+          }
+        } catch (Exception ignored) {}
+      }
+
+      sweetAlertDialog.setConfirmClickListener(dialog -> {
         acceptCallback.invoke("accepted");
-        sweetAlertDialog.dismissWithAnimation();
-      }
+        dialog.dismissWithAnimation();
+      });
+
+      sweetAlertDialog.setCancelClickListener(dialog -> dialog.dismissWithAnimation());
+
+      new Handler(Looper.getMainLooper()).post(() -> {
+        if (sweetAlertDialog.getWindow() != null) {
+          sweetAlertDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_PANEL);
+          sweetAlertDialog.getWindow().setDimAmount(0.7f); // efek gelap di belakang
+        }
+        // 🆕 Tambahan: custom font support
+        if (!fontFamily.isEmpty()) {
+          try {
+            Typeface customFont = Typeface.createFromAsset(
+              reactContext.getAssets(),
+              "fonts/" + fontFamily
+            );
+            TextView titleView = sweetAlertDialog.findViewById(R.id.title_text);
+            TextView contentView = sweetAlertDialog.findViewById(R.id.content_text);
+            if (titleView != null) titleView.setTypeface(customFont);
+            if (contentView != null) contentView.setTypeface(customFont);
+          } catch (Exception e) {
+            e.printStackTrace();
+          }
+        }
+        sweetAlertDialog.show();
+      });
     });
-    sweetAlertDialog.setCancelClickListener(new SweetAlertDialog.OnSweetClickListener() {
-      @Override
-      public void onClick(SweetAlertDialog sweetAlertDialog) {
-        sweetAlertDialog.dismissWithAnimation();
-      }
-    });
-    if (!otherButtonTitle.equals("")) {
-      sweetAlertDialog.showCancelButton(true);
-      sweetAlertDialog.setCancelText(otherButtonTitle);
-      if (!otherButtonColor.equals("")) {
-        sweetAlertDialog.setCancelButtonBackgroundColor(Color.parseColor(otherButtonColor));
-      }
-    }
-    sweetAlertDialog.setTitleText(title);
-    sweetAlertDialog.setContentText(contentText);
-    sweetAlertDialog.setCancelable(cancellable);
-    sweetAlertDialog.setConfirmText(confirmButtonTitle);
-    if (!barColor.equals("")) {
-      setBarColor(barColor);
-    }
-    sweetAlertDialog.setCancelable(cancellable);
-    if (!confirmButtonColor.equals("")) {
-      sweetAlertDialog.setConfirmButtonBackgroundColor(Color.parseColor(confirmButtonColor));
-    }
-    sweetAlertDialog.show();
   }
 
   @ReactMethod
