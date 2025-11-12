@@ -2,10 +2,12 @@ package com.clipsub.RNSweetAlert;
 
 import android.annotation.SuppressLint;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.app.Activity;
 import android.os.Handler;
 import android.os.Looper;
 import android.view.WindowManager;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -17,6 +19,7 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableMap;
 
+import cn.pedant.SweetAlert.R; // 🆕 ini penting untuk akses title_text & content_text
 import cn.pedant.SweetAlert.SweetAlertDialog;
 
 public class RNSweetAlertModule extends ReactContextBaseJavaModule {
@@ -52,7 +55,7 @@ public class RNSweetAlertModule extends ReactContextBaseJavaModule {
       String confirmButtonTitle = options.hasKey("confirmButtonTitle") ? options.getString("confirmButtonTitle") : "OK";
       String otherButtonTitle = options.hasKey("otherButtonTitle") ? options.getString("otherButtonTitle") : "";
       String otherButtonColor = options.hasKey("otherButtonColor") ? options.getString("otherButtonColor") : "";
-      String fontFamily = options.hasKey("fontFamily") ? options.getString("fontFamily") : ""; // 🆕 font opsional
+      String fontFamily = options.hasKey("fontFamily") ? options.getString("fontFamily") : ""; // 🆕
 
       switch (type) {
         case "normal": sweetAlertDialog.changeAlertType(SweetAlertDialog.NORMAL_TYPE); break;
@@ -97,9 +100,10 @@ public class RNSweetAlertModule extends ReactContextBaseJavaModule {
       new Handler(Looper.getMainLooper()).post(() -> {
         if (sweetAlertDialog.getWindow() != null) {
           sweetAlertDialog.getWindow().setType(WindowManager.LayoutParams.TYPE_APPLICATION_PANEL);
-          sweetAlertDialog.getWindow().setDimAmount(0.7f); // efek gelap di belakang
+          sweetAlertDialog.getWindow().setDimAmount(0.7f);
         }
-        // 🆕 Tambahan: custom font support
+
+        // 🆕 Custom font support
         if (!fontFamily.isEmpty()) {
           try {
             Typeface customFont = Typeface.createFromAsset(
@@ -114,6 +118,7 @@ public class RNSweetAlertModule extends ReactContextBaseJavaModule {
             e.printStackTrace();
           }
         }
+
         sweetAlertDialog.show();
       });
     });
@@ -165,7 +170,6 @@ public class RNSweetAlertModule extends ReactContextBaseJavaModule {
     sweetAlertDialog.getProgressHelper().resetCount();
   }
 
-  // Get spinning status, better to use a boolean variable in JS side instead.
   @ReactMethod
   public void isSpinning(Promise promise) {
     try {

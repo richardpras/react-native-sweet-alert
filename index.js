@@ -30,6 +30,7 @@ const DEFAULT_OPTIONS = {
   barColor: '',
   otherButtonTitle: '',
   otherButtonColor: '',
+  fontFamily: 'Poppins-Regular',
   style: 'success',
   cancellable: true,
 };
