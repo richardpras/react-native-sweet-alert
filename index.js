@@ -1,26 +1,14 @@
 /**
- * RNSweetAlert index bridge
- * Updated for React Native 0.71+
+ * @providesModule RNSweetAlert
+ * @author Doko
+ * @flow
  */
 
-import { Platform, NativeModules } from 'react-native';
+'use strict';
 
-const LINKING_ERROR =
-  `The package 'RNSweetAlert' doesn't seem to be linked. Make sure:\n\n` +
-  Platform.select({ ios: "- You have run 'pod install'\n", default: '' }) +
-  '- You rebuilt the app after installing the package\n' +
-  '- You are not using Expo Go (bare workflow required)\n';
+import React, { NativeModules, Platform } from 'react-native';
 
-const Native = NativeModules.RNSweetAlert
-  ? NativeModules.RNSweetAlert
-  : new Proxy(
-      {},
-      {
-        get() {
-          throw new Error(LINKING_ERROR);
-        },
-      }
-    );
+const Native = Platform.OS === 'android' ? NativeModules.RNSweetAlert : NativeModules.SweetAlertManager;
 
 const DEFAULT_OPTIONS = {
   title: '',
@@ -30,24 +18,15 @@ const DEFAULT_OPTIONS = {
   barColor: '',
   otherButtonTitle: '',
   otherButtonColor: '',
-  fontFamily: 'Poppins-Regular',
   style: 'success',
-  cancellable: true,
-};
+  cancellable: true
+}
 
 const SweetAlert = {
-  showAlertWithOptions: (options = DEFAULT_OPTIONS, callback = () => {}) => {
-    if (Platform.OS === 'android' && Native.showAlertWithOptions) {
-      Native.showAlertWithOptions(options, callback);
-    } else {
-      console.warn('SweetAlert not available on this platform.');
-    }
+  showAlertWithOptions: (options, callback = () => {}) => {
+    Native.showAlertWithOptions(options ? options : DEFAULT_OPTIONS, callback)
   },
-  dismissAlert: () => {
-    if (Platform.OS === 'android' && Native.hideSweetAlert) {
-      Native.hideSweetAlert();
-    }
-  },
+  dismissAlert: () => Native.hideSweetAlert(),
 };
 
 export default SweetAlert;
